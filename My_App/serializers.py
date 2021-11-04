@@ -1,28 +1,42 @@
 from django.db.models import fields
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from .models import *
+from django.contrib.auth.models import User
 
-class AdminSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Admin
-        fields=['id','first_name','last_name','email','gender','created_at']
+        model=MyUser
+        fields='__all__'
+
+class HODSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=HOD
+        fields='__all__'
 
 class StaffSerializer(serializers.ModelSerializer):
     class Meta:
         model=Staff
-        fields=['id','name','email','address','created_at']
+        fields='__all__'
+
+        
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Student
+        fields='__all__'
+
 class CourseSerializer(serializers.ModelSerializer):
+    taken_by=StudentSerializer(many=True,read_only=True)
     class Meta:
         model=Course
-        fields=['id','course_name','created_at']
+        fields=['id','course_name','taken_by','created_at']
+
+
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model=Subject
         fields=['subject_name','course_name','staff','created_at']
-class StudentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Student
-        fields=['id','name','email','gender','course','address','created_at']
+
 
 class LeaveReportStudentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,10 +56,10 @@ class StaffFeedbackSerializer(serializers.ModelSerializer):
         model=StaffFeedback
         fields=['id','staff_name','course_name','subject_name','feedback','created_at']
 
-class AdminNotificationSerializer(serializers.ModelSerializer):
+class HODNotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model=AdminNotification
-        fields=['id','admin_name','send_to_staff','send_to_student','notice','created_at']
+        model=HODNotification
+        fields=['id','HOD_name','send_to_staff','send_to_student','notice','created_at']
 
 class StaffNotificationSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,36 +1,52 @@
 from django.db import models
-from django.db.models.fields import TextField
 from django.contrib.auth.models import AbstractUser
+from django.db.models.base import Model
+from django.db.models.manager import Manager
 # Create your models here.
 STUDENT_GENDER=(
     ('Male','Male'),
     ('Female','Female'),
     ('Others','Others')
 )
-ADMIN_GENDER=(
+HOD_GENDER=(
     ('Male','Male'),
     ('Female','Female'),
     ('Others','Others')
 )
 STAFF_GENDER=(
     ('Male','Male'),
-    ('Male','Female'),
+    ('Female','Female'),
     ('Others','Others')    
 )
+REGISTRATION_GENDER=(
+    ('Male','Male'),
+    ('Female','Female'),
+    ('Others','Others') 
+)
+POST_CHOICES=(
+    ('HOD','HOD'),
+    ('Staff','Staff'),
+    ('Student','Student')
+)
+class MyUser(AbstractUser):
+    gender=models.CharField(max_length=200,choices=REGISTRATION_GENDER)
+    post=models.CharField(max_length=200,choices=POST_CHOICES)
+    phone_number=models.CharField(max_length=10)
 
-
-class Admin(models.Model):
+class HOD(models.Model):
     id=models.AutoField(primary_key=True)
+    user_name=models.OneToOneField(MyUser,on_delete=models.CASCADE)
     first_name=models.CharField(max_length=200)
     last_name=models.CharField(max_length=200)
     email=models.EmailField(max_length=200)
-    gender=models.CharField(max_length=200,choices=ADMIN_GENDER)
+    gender=models.CharField(max_length=200,choices=HOD_GENDER)
     created_at=models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return self.first_name
 
 class Staff(models.Model):
     id=models.AutoField(primary_key=True)
+    user_name=models.OneToOneField(MyUser,on_delete=models.CASCADE)
     name=models.CharField(max_length=200)
     email=models.EmailField(max_length=200)
     gender=models.CharField(max_length=200,choices=STAFF_GENDER)
@@ -58,6 +74,7 @@ class Subject(models.Model):
 
 class Student(models.Model):
     id=models.AutoField(primary_key=True)
+    user_name=models.OneToOneField(MyUser,on_delete=models.CASCADE)
     name=models.CharField(max_length=200)
     email=models.EmailField(max_length=200)
     gender=models.CharField(max_length=200,choices=STUDENT_GENDER)
@@ -107,14 +124,14 @@ class StaffFeedback(models.Model):
     def __str__(self):
         return self.staff_name
 
-class AdminNotification(models.Model):
-    admin_name=models.ForeignKey(Admin,on_delete=models.CASCADE)
+class HODNotification(models.Model):
+    HOD_name=models.ForeignKey(HOD,on_delete=models.CASCADE)
     send_to_staff=models.ManyToManyField(Staff)
     send_to_student=models.ManyToManyField(Student)
     notice=models.TextField()
     created_at=models.DateTimeField(auto_now_add=True)
     def __str__(self):
-        return self.admin_name
+        return self.HOD_name
 
 class StaffNotification(models.Model):
     staff_name=models.ForeignKey(Staff,on_delete=models.CASCADE)
@@ -122,15 +139,6 @@ class StaffNotification(models.Model):
     notice=models.TextField()
     created_at=models.DateTimeField(auto_now_add=True)
     def __str__(self):
-        return self.staff_name
+        return str(self.staff_name)
 
 
-
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
-@receiver(post_save,sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender,instance=None,created=False,**kwargs):
-    if created:
-        Token.objects.create(user=instance)
